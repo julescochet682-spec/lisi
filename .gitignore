@@ -1,0 +1,7 @@
+.sites-runtime/
+node_modules/
+test-results/
+*.zip
+.env*
+!.env.example
+
