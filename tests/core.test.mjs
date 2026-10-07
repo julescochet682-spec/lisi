@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {splitText,buildDocument,clampPosition,wavBlob} from '../dist/core.js';
+test('préserve le texte français sans tronquer les longues phrases',()=>{const original='Écoutez votre cours. Il coûte 12,50 euros.\n\n'+('Apprendre ensemble est possible, '.repeat(50));const result=splitText(original);assert.equal(result.map(s=>s.text).join(' '),original.replace(/\s+/g,' ').trim());assert.ok(result.every(s=>s.text.length<=260));assert.equal(result.at(-1).paragraph,1);});
+test('130 pages restent navigables, y compris les pages vides',()=>{const pages=Array.from({length:130},(_,i)=>i===4?'':`Ceci est la page ${i+1}.`);const doc=buildDocument('Cours','PDF',pages,'test');assert.equal(doc.pages.length,130);assert.equal(doc.sentences.length,129);assert.equal(doc.sentences[4].page,6);assert.equal(doc.sentences.at(-1).page,130);});
+test('bornes de reprise et fichiers sans texte',()=>{assert.equal(clampPosition(999,4),3);assert.equal(clampPosition(-1,4),0);assert.equal(clampPosition(NaN,4),0);assert.equal(clampPosition(3,0),0);assert.deepEqual(splitText(' \n\n '),[]);});
+test('audio WAV mono valide avec écrêtage des amplitudes',async()=>{const b=await wavBlob(new Float32Array([-2,0,2])).arrayBuffer();const v=new DataView(b);assert.equal(b.byteLength,50);assert.equal(v.getUint32(24,true),24000);assert.equal(v.getInt16(44,true),-32768);assert.equal(v.getInt16(48,true),32767);});
