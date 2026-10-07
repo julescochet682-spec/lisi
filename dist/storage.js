@@ -1,0 +1,5 @@
+let dbPromise;
+function db(){return dbPromise??=new Promise((resolve,reject)=>{const r=indexedDB.open('lisi-reader',1);r.onupgradeneeded=()=>r.result.createObjectStore('documents',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+export async function allDocuments(){const database=await db();return new Promise((resolve,reject)=>{const r=database.transaction('documents').objectStore('documents').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+export async function saveDocument(doc){const database=await db();return new Promise((resolve,reject)=>{const tx=database.transaction('documents','readwrite');tx.objectStore('documents').put(doc);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}
+export async function deleteDocument(id){const database=await db();return new Promise((resolve,reject)=>{const tx=database.transaction('documents','readwrite');tx.objectStore('documents').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}
